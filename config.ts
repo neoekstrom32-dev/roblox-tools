@@ -1,29 +1,33 @@
-import * as fs from 'fs';
-import * as path from 'path';
-
-type Config = {  
-    setting1: string;  
-    setting2: number;  
-    setting3: boolean;  
-};
-
-const defaultConfig: Config = {  
-    setting1: 'defaultValue',  
-    setting2: 10,  
-    setting3: true,  
-};
-
-function loadConfig(filePath: string): Config {  
-    if (!fs.existsSync(filePath)) {  
-        return defaultConfig;  
-    }  
-    const content = fs.readFileSync(filePath, 'utf-8');  
-    try {  
-        const userConfig: Partial<Config> = JSON.parse(content);  
-        return { ...defaultConfig, ...userConfig };  
-    } catch {  
-        return defaultConfig;  
-    }  
+export interface Config {
+    apiUrl: string;
+    timeout: number;
+    debugMode: boolean;
 }
 
-export { loadConfig, Config };
+export const defaultConfig: Config = {
+    apiUrl: 'https://api.example.com',
+    timeout: 5000,
+    debugMode: false,
+};
+
+export function loadConfig(configFile: string): Config {
+    let configData;
+    try {
+        configData = require(configFile);
+    } catch (error) {
+        console.error('Could not load config:', error);
+        return defaultConfig;
+    }
+
+    return {
+        apiUrl: configData.apiUrl || defaultConfig.apiUrl,
+        timeout: configData.timeout || defaultConfig.timeout,
+        debugMode: configData.debugMode !== undefined ? configData.debugMode : defaultConfig.debugMode,
+    };
+}
+
+export function validateConfig(config: Config): boolean {
+    return typeof config.apiUrl === 'string' &&
+           typeof config.timeout === 'number' &&
+           typeof config.debugMode === 'boolean';
+}
