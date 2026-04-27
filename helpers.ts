@@ -1,33 +1,31 @@
-export function memoize<T extends (...args: any[]) => any>(fn: T): T {
-    const cache = new Map<string, ReturnType<T>>();
-    return function(...args: Parameters<T>): ReturnType<T> {
-        const key = JSON.stringify(args);
-        if (cache.has(key)) {
-            return cache.get(key)!;
-        }
-        const result = fn(...args);
-        cache.set(key, result);
-        return result;
-    } as T;
+export function deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
 }
 
-export function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
+export function mergeDeep<T>(target: T, source: Partial<T>): T {
+    for (const key in source) {
+        if (source[key] && typeof source[key] === 'object') {
+            target[key] = target[key] || {};
+            mergeDeep(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
+    }
+    return target;
+}
+
+export function isEmpty(obj: Record<string, unknown>): boolean {
+    return Object.keys(obj).length === 0;
+}
+
+export function debounce(func: Function, delay: number) {
     let timeoutId: NodeJS.Timeout;
-    return function(...args: Parameters<T>): void {
+    return function(...args: any[]) {
         if (timeoutId) {
             clearTimeout(timeoutId);
         }
-        timeoutId = setTimeout(() => fn(...args), delay);
-    } as T;
-}
-
-export function throttle<T extends (...args: any[]) => void>(fn: T, limit: number): T {
-    let lastCall = 0;
-    return function(...args: Parameters<T>): void {
-        const now = Date.now();
-        if (now - lastCall >= limit) {
-            lastCall = now;
-            fn(...args);
-        }
-    } as T;
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
 }
