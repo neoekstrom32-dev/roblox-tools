@@ -1,49 +1,29 @@
-type Vector3 = { x: number; y: number; z: number; }
+type Nullable<T> = T | null;
 
-type Color3 = { r: number; g: number; b: number; }
+type PriorityQueue<T> = {
+    data: T[];
+    push(item: T): void;
+    pop(): T | null;
+    isEmpty(): boolean;
+};
 
-/**
- * Adds two Vector3 objects and returns their sum.
- *
- * @param v1 The first vector object.
- * @param v2 The second vector object.
- * @returns A new Vector3 representing the sum.
- */
-function addVectors(v1: Vector3, v2: Vector3): Vector3 {
-    return {
-        x: v1.x + v2.x,
-        y: v1.y + v2.y,
-        z: v1.z + v2.z,
-    };
+function createPriorityQueue<T>(): PriorityQueue<T> {
+    const queue: T[] = [];
+
+    function push(item: T) {
+        queue.push(item);
+        queue.sort();
+    }
+
+    function pop(): T | null {
+        return isEmpty() ? null : queue.shift() || null;
+    }
+
+    function isEmpty(): boolean {
+        return queue.length === 0;
+    }
+
+    return { data: queue, push, pop, isEmpty };
 }
 
-/**
- * Scales a Vector3 object by a scalar value.
- *
- * @param vector The vector object to scale.
- * @param scale The scalar to multiply the vector by.
- * @returns A new Vector3 representing the scaled vector.
- */
-function scaleVector(vector: Vector3, scale: number): Vector3 {
-    return {
-        x: vector.x * scale,
-        y: vector.y * scale,
-        z: vector.z * scale,
-    };
-}
-
-/**
- * Blends two Color3 objects based on a factor.
- *
- * @param color1 The first color object.
- * @param color2 The second color object.
- * @param factor The blending factor (0 to 1).
- * @returns A new Color3 representing the blended color.
- */
-function blendColors(color1: Color3, color2: Color3, factor: number): Color3 {
-    return {
-        r: color1.r + (color2.r - color1.r) * factor,
-        g: color1.g + (color2.g - color1.g) * factor,
-        b: color1.b + (color2.b - color1.b) * factor,
-    };
-}
+export { Nullable, createPriorityQueue };
