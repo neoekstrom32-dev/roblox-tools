@@ -1,29 +1,36 @@
-type Nullable<T> = T | null;
+import { createLogger, format, transports } from 'winston';
+import { dirname, resolve } from 'path';
+import { Logger } from 'winston';
 
-type PriorityQueue<T> = {
-    data: T[];
-    push(item: T): void;
-    pop(): T | null;
-    isEmpty(): boolean;
-};
+const logDirectory = resolve(dirname(__filename), 'logs');
 
-function createPriorityQueue<T>(): PriorityQueue<T> {
-    const queue: T[] = [];
+const logger: Logger = createLogger({
+    level: 'info',
+    format: format.combine(
+        format.timestamp(),
+        format.printf(({ timestamp, level, message }) => {
+            return `${timestamp} [${level}]: ${message}`;
+        })
+    ),
+    transports: [
+        new transports.File({
+            filename: `${logDirectory}/error.log`,
+            level: 'error',
+            maxsize: 5242880,
+            maxFiles: '5d',
+        }),
+        new transports.File({
+            filename: `${logDirectory}/combined.log`,
+            maxsize: 5242880,
+            maxFiles: '5d',
+        }),
+    ],
+});
 
-    function push(item: T) {
-        queue.push(item);
-        queue.sort();
-    }
-
-    function pop(): T | null {
-        return isEmpty() ? null : queue.shift() || null;
-    }
-
-    function isEmpty(): boolean {
-        return queue.length === 0;
-    }
-
-    return { data: queue, push, pop, isEmpty };
+if (process.env.NODE_ENV !== 'production') {
+    logger.add(new transports.Console({
+        format: format.simple(),
+    }));
 }
 
-export { Nullable, createPriorityQueue };
+export default logger;
